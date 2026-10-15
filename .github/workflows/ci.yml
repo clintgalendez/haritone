@@ -45,13 +45,6 @@ jobs:
       - name: Build
         run: ./gradlew build :plugin:cyclonedxDirectBom --stacktrace
 
-      - name: Check the jar is reproducible
-        if: matrix.java == 25
-        run: |
-          sha256sum plugin/build/libs/*.jar | tee first.sha256
-          ./gradlew clean :plugin:jar --no-build-cache
-          sha256sum -c first.sha256
-
       - name: Upload test and coverage reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -71,6 +64,14 @@ jobs:
             plugin/build/libs/*.jar
             plugin/build/reports/cyclonedx-direct/bom.json
           retention-days: 14
+
+      # Last, because it cleans the build directory that the uploads above read from.
+      - name: Check the jar is reproducible
+        if: matrix.java == 25
+        run: |
+          sha256sum plugin/build/libs/*.jar | tee first.sha256
+          ./gradlew clean :plugin:jar --no-build-cache
+          sha256sum -c first.sha256
 
   dependency-review:
     name: Dependency review
