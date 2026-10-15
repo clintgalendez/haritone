@@ -1,0 +1,13 @@
+Haritone
+Copyright 2026 Clint Galendez and the Haritone contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Haritone is an independent project. It is not affiliated with, endorsed by, or
+sponsored by Hypixel Studios or the Baritone project. "Hytale" is a trademark
+of Hypixel Studios. Baritone (https://github.com/cabaletta/baritone, LGPL-3.0)
+inspired the feature set only; no Baritone source code, documentation text, or
+assets are included in this product.
+
+The distributed mod jar contains no third-party code. The Hytale server API is
+used at compile time only and is not redistributed.

@@ -1,0 +1,17 @@
+[versions]
+errorprone = "2.50.0"
+hytaleServer = "0.7.2"
+jacoco = "0.8.15"
+junit = "6.1.3"
+
+[libraries]
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+hytale-server = { module = "com.hypixel.hytale:Server", version.ref = "hytaleServer" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+[plugins]
+cyclonedx = { id = "org.cyclonedx.bom", version = "3.5.1" }
+errorprone = { id = "net.ltgt.errorprone", version = "5.1.1" }
+spotless = { id = "com.diffplug.spotless", version = "8.10.4" }
