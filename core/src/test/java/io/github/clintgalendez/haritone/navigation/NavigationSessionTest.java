@@ -81,6 +81,34 @@ class NavigationSessionTest {
   }
 
   @Test
+  void routeAheadStartsAtThePlayerAndEndsWithTheSession() {
+    GridBlockView view = GridBlockView.flat(30);
+    NavigationSession s = session(new Goals.AtBlock(new BlockPos(20, 1, 0)));
+    assertEquals(List.of(), s.routeAhead(5), "nothing to draw while planning");
+
+    tickAt(s, view, new BlockPos(0, 1, 0));
+    List<BlockPos> line = s.routeAhead(5);
+    assertEquals(6, line.size());
+    assertEquals(new BlockPos(0, 1, 0), line.getFirst());
+    assertEquals(new BlockPos(5, 1, 0), line.getLast());
+
+    for (int x = 1; x <= 17; x++) {
+      tickAt(s, view, new BlockPos(x, 1, 0));
+    }
+    assertEquals(
+        List.of(
+            new BlockPos(17, 1, 0),
+            new BlockPos(18, 1, 0),
+            new BlockPos(19, 1, 0),
+            new BlockPos(20, 1, 0)),
+        s.routeAhead(5),
+        "follows the player and stops at the end of the route");
+
+    s.cancel("test");
+    assertEquals(List.of(), s.routeAhead(5));
+  }
+
+  @Test
   void guidanceIsThrottledButAnnouncesNewLegs() {
     GridBlockView view =
         GridBlockView.parse(

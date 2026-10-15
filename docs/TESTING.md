@@ -35,10 +35,10 @@ line coverage drops below 90% or branch coverage below 75%. At the time of writi
 | `NodeHeapTest` | ordering, deterministic tie-breaks, 5,000 random inserts and decreases checked against a sort |
 | `BlockPosTest` | packing round trip across the full range, distinctness, range checks, flooring |
 | `BoundedTerrainCacheTest` | size bound, hit counting, LRU eviction order |
-| `NavigationSessionTest` | plan, guide and complete while walking; throttled guidance; plan-only; replanning on deviation; replan limit; replanning when the world changes; segment chaining as terrain loads; block find; block missing; cancel; already at goal; unstandable start; planning timeout; snapshot |
+| `NavigationSessionTest` | plan, guide and complete while walking; throttled guidance; route line points; plan-only; replanning on deviation; replan limit; replanning when the world changes; segment chaining as terrain loads; block find; block missing; cancel; already at goal; unstandable start; planning timeout; snapshot |
 | `NavigatorTest` | session cap, ended sessions do not count, replacement, listeners, forget and cancel-all |
 | `GuidanceAndBlockSearchTest` | leg merging and wording, breaks, partial-segment wording, compass, shell scan covers every block once in order, budgeted nearest-match search |
-| `SettingsTest` | defaults are valid, every invalid field is reported, NaN rejected, break gating, fall-height cap, preference parsing and round trip |
+| `SettingsTest` | defaults are valid, route line redraw interval, every invalid field is reported, NaN rejected, break gating, fall-height cap, preference parsing and round trip |
 | `CommandServiceTest` | goto, level and plan; coordinate and distance validation; busy cap; find validation; stop and status; waypoint lifecycle and persistence; break permission and server switch; set, get and reset; player leaving; unreadable data |
 | `PlayerDataStoreTest` | round trip with no temp files left, invalid entries skipped and reported, oversized and malformed files ignored, name and world validation |
 
@@ -114,6 +114,10 @@ world, and check each item. Until someone does, every player-facing behaviour be
 - [ ] Walking away more than 3 blocks gives "You left the route; replanning." and a new route.
 - [ ] Placing a block on the route gives "The route is blocked at …" within about a second.
 - [ ] Reaching the goal gives "Arrived at …".
+- [ ] While navigating, a line of particles marks the next steps of the route, moves ahead as you
+      walk, follows a new route after a replan, and stops after arrival or `/haritone stop`.
+      A second player nearby does not see it. Try other `RouteLineParticle` values if the default
+      looks wrong.
 - [ ] `/haritone goto <x> <z>` (column), `level <y>`, `find <blockId> --radius=20`, and `plan`
       all work.
 - [ ] `/haritone wp add home`, `wp list`, `wp goto home`, and `wp remove home` work, and

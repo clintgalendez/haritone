@@ -29,6 +29,9 @@ public record Settings(
     double heuristicWeight,
     double deviationTolerance,
     int guidanceIntervalSeconds,
+    int routeLineLength,
+    int routeLineIntervalMs,
+    String routeLineParticle,
     double ascendCost,
     double descendCostPerBlock,
     double climbUpCost,
@@ -65,6 +68,9 @@ public record Settings(
         1.0,
         3.0,
         4,
+        16,
+        1_000,
+        "Block_Top_Glow",
         c.ascend(),
         c.descendPerBlock(),
         c.climbUp(),
@@ -94,6 +100,13 @@ public record Settings(
     range(problems, "HeuristicWeight", heuristicWeight, 1, 10);
     range(problems, "DeviationTolerance", deviationTolerance, 1, 64);
     range(problems, "GuidanceIntervalSeconds", guidanceIntervalSeconds, 1, 600);
+    range(problems, "RouteLineLength", routeLineLength, 0, 64);
+    range(problems, "RouteLineIntervalMs", routeLineIntervalMs, 100, 5_000);
+    if (routeLineParticle == null
+        || routeLineParticle.isBlank()
+        || routeLineParticle.length() > 128) {
+      problems.add("RouteLineParticle must be 1 to 128 characters");
+    }
     range(problems, "AscendCost", ascendCost, 0.01, CostModel.MAX_COST);
     range(problems, "DescendCostPerBlock", descendCostPerBlock, 0.01, CostModel.MAX_COST);
     range(problems, "ClimbUpCost", climbUpCost, 0.01, CostModel.MAX_COST);
@@ -108,6 +121,11 @@ public record Settings(
     keys(problems, "HazardBlockKeys", hazardBlockKeys);
     keys(problems, "UnbreakableBlockKeys", unbreakableBlockKeys);
     return problems;
+  }
+
+  /** Navigation ticks between route line redraws. Call only on validated settings. */
+  public int routeLineEveryTicks() {
+    return Math.max(1, routeLineIntervalMs / tickIntervalMs);
   }
 
   /** Search settings for one player. Call only on validated settings. */

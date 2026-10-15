@@ -31,6 +31,9 @@ public final class HaritoneConfig {
   double heuristicWeight = D.heuristicWeight();
   double deviationTolerance = D.deviationTolerance();
   int guidanceIntervalSeconds = D.guidanceIntervalSeconds();
+  int routeLineLength = D.routeLineLength();
+  int routeLineIntervalMs = D.routeLineIntervalMs();
+  String routeLineParticle = D.routeLineParticle();
   double ascendCost = D.ascendCost();
   double descendCostPerBlock = D.descendCostPerBlock();
   double climbUpCost = D.climbUpCost();
@@ -125,6 +128,21 @@ public final class HaritoneConfig {
               c -> c.guidanceIntervalSeconds)
           .add()
           .append(
+              new KeyedCodec<>("RouteLineLength", Codec.INTEGER),
+              (c, v) -> c.routeLineLength = v,
+              c -> c.routeLineLength)
+          .add()
+          .append(
+              new KeyedCodec<>("RouteLineIntervalMs", Codec.INTEGER),
+              (c, v) -> c.routeLineIntervalMs = v,
+              c -> c.routeLineIntervalMs)
+          .add()
+          .append(
+              new KeyedCodec<>("RouteLineParticle", Codec.STRING),
+              (c, v) -> c.routeLineParticle = v,
+              c -> c.routeLineParticle)
+          .add()
+          .append(
               new KeyedCodec<>("AscendCost", Codec.DOUBLE),
               (c, v) -> c.ascendCost = v,
               c -> c.ascendCost)
@@ -194,6 +212,9 @@ public final class HaritoneConfig {
         heuristicWeight,
         deviationTolerance,
         guidanceIntervalSeconds,
+        routeLineLength,
+        routeLineIntervalMs,
+        routeLineParticle,
         ascendCost,
         descendCostPerBlock,
         climbUpCost,

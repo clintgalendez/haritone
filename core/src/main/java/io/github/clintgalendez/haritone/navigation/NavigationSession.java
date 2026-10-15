@@ -112,6 +112,19 @@ public final class NavigationSession {
     return path;
   }
 
+  /**
+   * The route from the player's current step onward, at most {@code count} steps ahead, for drawing
+   * a line to follow. Empty unless the session is navigating.
+   */
+  public synchronized List<BlockPos> routeAhead(int count) {
+    if (status != NavigationStatus.NAVIGATING) {
+      return List.of();
+    }
+    List<PathStep> steps = path.steps();
+    int end = Math.min(steps.size(), index + count + 1);
+    return steps.subList(index, end).stream().map(PathStep::pos).toList();
+  }
+
   public synchronized Snapshot snapshot() {
     int moves = path == null ? 0 : path.moves();
     double remaining = path == null ? 0 : Guidance.remainingDistance(path, index);

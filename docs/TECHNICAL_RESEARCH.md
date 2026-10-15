@@ -101,6 +101,22 @@ How the facts were checked:
   player (see [ADR-0003](adr/0003-guide-mode-no-automatic-movement.md)). Teleport stepping and
   velocity impulses are candidates for a later milestone, once they have been tested in game.
 
+## Route line particles ([javap]; not yet checked in game)
+
+- `ParticleUtil.spawnParticleEffect(String particleSystemId, double x, double y, double z,
+  List<Ref<EntityStore>> viewers, ComponentAccessor<EntityStore>)` sends one particle system to
+  the listed players only. Haritone passes the navigating player's `Ref` and its `Store`. It
+  calls this on the world thread, which already reads the player's `TransformComponent`.
+  `DEFAULT_PARTICLE_DISTANCE` is 75.
+- Particle systems are assets (`Server/Particles/**/*.particlesystem` in `Assets.zip`). The
+  default, `Block_Top_Glow`, is one-shot: its spawners emit one particle that lives 1.5 s, and
+  it adds 0.5 to the spawn height. Its `CullDistance` of 10 hides it farther away than that.
+  Systems with `TotalParticles` or `TotalSpawners` of -1, or with a `WaveDelay`, repeat. Do not
+  use those for the line.
+- `DebugUtils.addLine` and the other debug shapes were rejected for this. They are sent to every
+  player in the world, and the `PreventDebugScreens` component suggests normal clients may hide
+  them.
+
 ## Breaking, placing, inventory ([javap]; not used yet)
 
 - `BlockHarvestUtils.performBlockBreak(...)` fires a cancellable `BreakBlockEvent`.
@@ -141,3 +157,5 @@ Gradle plugin 3.5.1. Every GitHub Action used in a workflow is pinned to a commi
    as full blocks), need in-game confirmation.
 4. Can teleport stepping or velocity impulses move players acceptably? This decides the
    auto-movement milestone.
+5. Does the route line show only to the navigating player? Is `Block_Top_Glow` a good default,
+   and is a lift of 0.1 the right height?
