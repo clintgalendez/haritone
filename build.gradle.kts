@@ -1,6 +1,15 @@
 import com.diffplug.gradle.spotless.SpotlessExtension
 import net.ltgt.gradle.errorprone.errorprone
 
+buildscript {
+    repositories { gradlePluginPortal() }
+    dependencies {
+        // The CycloneDX plugin pulls Jackson 2.22.2, which has advisories fixed in 2.22.3.
+        // Build-time only; nothing from the build classpath ships in the mod jar.
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+    }
+}
+
 plugins {
     alias(libs.plugins.cyclonedx) apply false
     alias(libs.plugins.errorprone) apply false
