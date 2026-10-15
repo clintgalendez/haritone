@@ -6,7 +6,14 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.1.0-rc.1] - 2026-10-15
+## [0.1.0-rc.2] - 2026-10-15
+
+### Fixed
+
+- Release workflow: keep the SBOM when the reproducibility check rebuilds the jar. The
+  `v0.1.0-rc.1` tag never produced a release because of this.
+
+## [0.1.0-rc.1] - 2026-10-15 [NOT RELEASED]
 
 First release candidate. Guide mode only: Haritone plans routes and guides players; it never
 moves them. Player-facing behaviour has not yet been checked in game (see docs/TESTING.md).
@@ -44,5 +51,6 @@ moves them. Player-facing behaviour has not yet been checked in game (see docs/T
   - workflows for CI, CodeQL, OpenSSF Scorecard, dependency submission, and gated releases.
 - Project documentation, governance files, and issue and PR templates.
 
-[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.1...HEAD
+[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.2...HEAD
+[0.1.0-rc.2]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.1

@@ -61,7 +61,7 @@ jobs:
       - name: Check the jar is reproducible
         run: |
           sha256sum plugin/build/libs/*.jar | tee first.sha256
-          ./gradlew clean :plugin:jar --no-build-cache
+          ./gradlew clean :plugin:jar :plugin:cyclonedxDirectBom --no-build-cache
           sha256sum -c first.sha256
 
       - name: Assemble release files
