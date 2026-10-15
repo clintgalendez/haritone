@@ -165,7 +165,9 @@ public final class MoveEvaluator {
       }
 
       ascend(x, y, z, nx, nz, allowBreak, sink);
-      descend(y, nx, nz, sink);
+      if (Double.isNaN(stand)) {
+        descend(y, nx, nz, sink); // where the entity can stand, it traverses instead
+      }
     }
 
     for (int[] d : DIAGONALS) {
@@ -237,13 +239,11 @@ public final class MoveEvaluator {
     }
   }
 
+  /** Called only when the entity cannot stand at {@code (nx, y, nz)}. */
   private void descend(int y, int nx, int nz, MoveSink sink) {
     // Step off the edge at the current level, then drop until something holds the entity.
     if (!passable(nx, y, nz) || !passable(nx, y + 1, nz)) {
       return;
-    }
-    if (!Double.isNaN(standCost(nx, y, nz, false, null))) {
-      return; // Supported at this level: that is a traverse, not a descent.
     }
     for (int drop = 1; drop <= settings.maxFallHeight(); drop++) {
       int ny = y - drop;

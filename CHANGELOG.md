@@ -6,6 +6,23 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The next route segment is planned while you walk the current one, starting 64 steps before
+  its end, so long trips no longer stop at each segment end to plan.
+- `PartialRouteAfterMs` (default 250): after this much compute, a long search starts you on
+  its best partial route once that gets at least 16 blocks closer, and plans the rest in
+  segments. Set it to 0 to always wait for the full route.
+
+### Changed
+
+- Route planning needs 3 to 6 times less compute on real terrain, with the same routes. The
+  terrain cache stores one byte per block in 16×16×16 sections instead of a boxed LRU map, the
+  search's node map no longer boxes keys, a repeated stand check per move was removed, and
+  Hytale blocks are read through a section cursor.
+- `PlanningBudgetMs` defaults to 8 instead of 4, and is shared by sessions planning a route or
+  their next segment. Existing config files keep their value; set it to 8 to match.
+
 ## [0.1.0-rc.4] - 2026-10-15
 
 ### Added

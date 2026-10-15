@@ -309,6 +309,49 @@ class PathSearchTest {
   }
 
   @Test
+  void returnsAPartialPathEarlyOnceItHasMadeProgress() {
+    GridBlockView grid = GridBlockView.flat(256);
+    // Every lookup takes 20 µs, so reaching the far corner takes far longer than 5 ms.
+    BlockView slow =
+        new BlockView() {
+          @Override
+          public Terrain terrain(int x, int y, int z) {
+            long until = System.nanoTime() + 20_000;
+            while (System.nanoTime() < until) {
+              Thread.onSpinWait();
+            }
+            return grid.terrain(x, y, z);
+          }
+
+          @Override
+          public int minY() {
+            return grid.minY();
+          }
+
+          @Override
+          public int maxY() {
+            return grid.maxY();
+          }
+        };
+    BlockPos start = new BlockPos(0, 1, 0);
+    BlockPos goal = new BlockPos(255, 1, 255);
+    PathSettings early = DEFAULTS.withTimeoutMillis(60_000).withPartialAfterMillis(5);
+    PathResult result = new PathSearch(slow, start, new Goals.AtBlock(goal), early).run();
+    assertEquals(Outcome.PARTIAL, result.outcome());
+    assertEquals(StopReason.TIMEOUT, result.reason());
+    double startDistance = Goal.octile(goal.x() - start.x(), goal.z() - start.z());
+    BlockPos end = result.path().end();
+    assertTrue(
+        startDistance - Goal.octile(goal.x() - end.x(), goal.z() - end.z()) >= 16,
+        "ends at least 16 blocks closer: " + end);
+    assertWellFormed(grid, result.path(), early);
+
+    PathResult noPartials =
+        new PathSearch(grid, start, new Goals.AtBlock(goal), early.withAllowPartial(false)).run();
+    assertEquals(Outcome.FOUND, noPartials.outcome(), "only stops early when partials are allowed");
+  }
+
+  @Test
   void cancellationStopsTheSearch() {
     GridBlockView view = GridBlockView.flat(100);
     view.start = new BlockPos(0, 1, 0);

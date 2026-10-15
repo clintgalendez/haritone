@@ -29,6 +29,10 @@ final class HytaleBlockView implements BlockView {
   static final int MAX_FEET_Y = 318;
 
   private final SectionReader reader;
+
+  /** Keeps the current section resolved, so reads inside it skip the reader's section lookup. */
+  private final SectionReader.SectionCursor cursor;
+
   private final List<String> hazardKeywords;
   private final List<String> unbreakableKeywords;
   private final Map<Integer, Terrain> blockTerrain = new HashMap<>();
@@ -36,6 +40,7 @@ final class HytaleBlockView implements BlockView {
 
   HytaleBlockView(World world, List<String> hazardKeywords, List<String> unbreakableKeywords) {
     this.reader = new SectionReader(world.getChunkStore());
+    this.cursor = reader.sectionCursor();
     this.hazardKeywords = lower(hazardKeywords);
     this.unbreakableKeywords = lower(unbreakableKeywords);
   }
@@ -46,14 +51,14 @@ final class HytaleBlockView implements BlockView {
 
   @Override
   public Terrain terrain(int x, int y, int z) {
-    if (!reader.canHoldY(y) || !reader.hasStorageInMemory(x, y, z)) {
+    if (!reader.canHoldY(y) || !cursor.moveTo(x, y, z)) {
       return Terrain.UNKNOWN;
     }
-    Terrain block = blockTerrain.computeIfAbsent(reader.getBlock(x, y, z), this::classifyBlock);
+    Terrain block = blockTerrain.computeIfAbsent(cursor.block(), this::classifyBlock);
     if (block == Terrain.SOLID || block == Terrain.DANGER) {
       return block;
     }
-    int fluid = reader.getFluidId(x, y, z);
+    int fluid = cursor.fluidId();
     if (fluid != Fluid.EMPTY_ID) {
       return fluidTerrain.computeIfAbsent(fluid, this::classifyFluid);
     }

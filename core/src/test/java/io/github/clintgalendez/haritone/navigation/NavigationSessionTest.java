@@ -210,12 +210,43 @@ class NavigationSessionTest {
     view.fill(16, 0, 0, 39, 0, 39, Terrain.SOLID).fill(16, 1, 0, 39, 319, 39, Terrain.OPEN);
     List<String> messages = walk(s, view);
     assertTrue(
-        messages.contains("End of this segment; planning the next one."), messages.toString());
-    tickAt(s, view, new BlockPos(15, 1, 0));
+        messages.stream().anyMatch(m -> m.startsWith("Next segment: 15 moves")),
+        "the next segment was planned ahead, so it starts without a pause: " + messages);
+    assertFalse(messages.contains("End of this segment; planning the next one."));
     assertEquals(NavigationStatus.NAVIGATING, s.status());
     assertTrue(s.path().reachesGoal());
     walk(s, view);
     assertEquals(NavigationStatus.COMPLETED, s.status());
+    assertEquals(2, s.snapshot().segments());
+  }
+
+  @Test
+  void aNextSegmentStillPlanningAtTheEndIsFinishedAfterwards() {
+    GridBlockView view = GridBlockView.flat(80);
+    view.fill(16, 0, 0, 79, 319, 79, Terrain.UNKNOWN);
+    NavigationSession s = session(new Goals.AtBlock(new BlockPos(70, 1, 0)));
+    tickAt(s, view, new BlockPos(0, 1, 0));
+    assertFalse(s.path().reachesGoal());
+    assertFalse(s.isSearching(), "planning ahead starts on the first tick of following");
+    view.fill(16, 0, 0, 79, 0, 79, Terrain.SOLID).fill(16, 1, 0, 79, 319, 79, Terrain.OPEN);
+
+    // A 1 ns budget allows one expansion per tick: not enough to finish while walking 15 steps.
+    List<String> messages = new ArrayList<>();
+    for (PathStep step : s.path().steps()) {
+      messages.addAll(s.tick(step.pos().x() + 0.5, 1, step.pos().z() + 0.5, view, 1));
+      if (step.pos().x() == 5) {
+        assertTrue(s.isSearching(), "planning the next segment while walking");
+      }
+    }
+    assertTrue(
+        messages.contains("End of this segment; planning the next one."), messages.toString());
+    assertEquals(NavigationStatus.PLANNING, s.status());
+    long expandedAhead = s.snapshot().nodesExpanded();
+    tickAt(s, view, new BlockPos(15, 1, 0));
+    assertEquals(NavigationStatus.NAVIGATING, s.status());
+    assertTrue(s.path().reachesGoal());
+    assertEquals(new BlockPos(15, 1, 0), s.path().start());
+    assertTrue(s.snapshot().nodesExpanded() > expandedAhead);
     assertEquals(2, s.snapshot().segments());
   }
 

@@ -19,6 +19,7 @@ class SettingsTest {
     return new Settings(
         d.maxNodes(),
         d.searchTimeoutMs(),
+        d.partialRouteAfterMs(),
         d.planningBudgetMs(),
         d.tickIntervalMs(),
         d.maxActiveSessions(),
@@ -66,6 +67,7 @@ class SettingsTest {
         new Settings(
             0,
             10,
+            -1,
             0,
             5,
             0,
@@ -94,8 +96,9 @@ class SettingsTest {
             List.of(""),
             null);
     List<String> problems = bad.validate();
-    assertEquals(27, problems.size(), String.join("\n", problems));
+    assertEquals(28, problems.size(), String.join("\n", problems));
     assertTrue(problems.contains("MaxNodes must be between 1000 and 5000000 but was 0"));
+    assertTrue(problems.contains("PartialRouteAfterMs must be between 0 and 60000 but was -1"));
     assertTrue(problems.contains("RouteLineLength must be between 0 and 64 but was 65"));
     assertTrue(problems.contains("RouteLineParticle must be 1 to 128 characters"));
     assertTrue(problems.contains("UnknownTerrain must be AVOID or ALLOW but was SOMETIMES"));
@@ -110,6 +113,7 @@ class SettingsTest {
         new Settings(
             d.maxNodes(),
             d.searchTimeoutMs(),
+            d.partialRouteAfterMs(),
             d.planningBudgetMs(),
             d.tickIntervalMs(),
             d.maxActiveSessions(),
