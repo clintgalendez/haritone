@@ -38,6 +38,7 @@ class CommandServiceTest {
     return new Settings(
         d.maxNodes(),
         d.searchTimeoutMs(),
+        d.partialRouteAfterMs(),
         d.planningBudgetMs(),
         d.tickIntervalMs(),
         2,

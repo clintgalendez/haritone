@@ -17,6 +17,7 @@ public final class HaritoneConfig {
 
   int maxNodes = D.maxNodes();
   int searchTimeoutMs = D.searchTimeoutMs();
+  int partialRouteAfterMs = D.partialRouteAfterMs();
   int planningBudgetMs = D.planningBudgetMs();
   int tickIntervalMs = D.tickIntervalMs();
   int maxActiveSessions = D.maxActiveSessions();
@@ -56,6 +57,11 @@ public final class HaritoneConfig {
               new KeyedCodec<>("SearchTimeoutMs", Codec.INTEGER),
               (c, v) -> c.searchTimeoutMs = v,
               c -> c.searchTimeoutMs)
+          .add()
+          .append(
+              new KeyedCodec<>("PartialRouteAfterMs", Codec.INTEGER),
+              (c, v) -> c.partialRouteAfterMs = v,
+              c -> c.partialRouteAfterMs)
           .add()
           .append(
               new KeyedCodec<>("PlanningBudgetMs", Codec.INTEGER),
@@ -198,6 +204,7 @@ public final class HaritoneConfig {
     return new Settings(
         maxNodes,
         searchTimeoutMs,
+        partialRouteAfterMs,
         planningBudgetMs,
         tickIntervalMs,
         maxActiveSessions,

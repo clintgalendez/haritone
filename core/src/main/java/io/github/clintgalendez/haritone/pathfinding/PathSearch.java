@@ -9,10 +9,9 @@ import io.github.clintgalendez.haritone.world.BlockView;
 import io.github.clintgalendez.haritone.world.BoundedTerrainCache;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,7 +24,9 @@ import java.util.Objects;
  *
  * <p>When the goal cannot be reached (it is enclosed, outside known terrain, or a limit is hit) and
  * partial paths are allowed, the result is a path to the explored position with the lowest
- * estimated remaining cost. Navigation follows it and then plans the next segment.
+ * estimated remaining cost. Navigation follows it and then plans the next segment. With {@link
+ * PathSettings#partialAfterMillis()} set, a long search also stops early with such a path once it
+ * has made enough progress, so the player can start walking sooner.
  *
  * <p>Not thread-safe, except {@link #cancel()}, which may be called from any thread.
  */
@@ -33,11 +34,14 @@ public final class PathSearch {
 
   private static final double EPSILON = 1e-9;
 
+  /** Blocks of estimated progress an early partial path must make. */
+  private static final int MIN_EARLY_PROGRESS = 16;
+
   private final Goal goal;
   private final PathSettings settings;
   private final MoveEvaluator evaluator;
   private final double verticalCost;
-  private final Map<Long, Node> nodes = new HashMap<>();
+  private final NodeMap nodes = new NodeMap();
   private final NodeHeap open = new NodeHeap();
   private final Node start;
   private Node best;
@@ -74,7 +78,7 @@ public final class PathSearch {
       result = new PathResult(Outcome.FAILED, StopReason.INVALID_START, null, 0, 0, 0);
       return;
     }
-    nodes.put(start.pack(), this.start);
+    nodes.add(this.start);
     open.add(this.start);
   }
 
@@ -119,6 +123,10 @@ public final class PathSearch {
 
   private PathResult runSlice(int maxExpansions, long budgetNanos, long sliceStart) {
     long totalBudget = settings.timeoutMillis() * 1_000_000L;
+    long partialBudget =
+        settings.partialAfterMillis() > 0 && settings.allowPartial()
+            ? settings.partialAfterMillis() * 1_000_000L
+            : Long.MAX_VALUE;
     int sliceExpansions = 0;
     while (true) {
       if (cancelRequested) {
@@ -128,7 +136,10 @@ public final class PathSearch {
         return finishPartial(StopReason.EXHAUSTED);
       }
       long now = System.nanoTime();
-      if (elapsedNanos + (now - sliceStart) >= totalBudget) {
+      long used = elapsedNanos + (now - sliceStart);
+      if (used >= totalBudget
+          || (used >= partialBudget
+              && (start.h - best.h) / settings.heuristicWeight() >= MIN_EARLY_PROGRESS)) {
         return finishPartial(StopReason.TIMEOUT);
       }
       // Always expand at least once per slice so a tiny budget still makes progress.
@@ -173,8 +184,7 @@ public final class PathSearch {
             return;
           }
           double g = current.g + cost;
-          long key = BlockPos.pack(x, y, z);
-          Node neighbor = nodes.get(key);
+          Node neighbor = nodes.get(x, y, z);
           if (neighbor == null) {
             if (nodes.size() >= settings.maxNodes()) {
               withinLimit[0] = false;
@@ -183,7 +193,7 @@ public final class PathSearch {
             neighbor = new Node(x, y, z, nextSeq++);
             neighbor.h = heuristic(x, y, z);
             neighbor.g = Double.POSITIVE_INFINITY;
-            nodes.put(key, neighbor);
+            nodes.add(neighbor);
           }
           if (g + EPSILON < neighbor.g) {
             neighbor.g = g;
@@ -225,5 +235,70 @@ public final class PathSearch {
           new PathStep(new BlockPos(node.x, node.y, node.z), node.movement, node.breaks));
     }
     return new Path(new ArrayList<>(steps), end.g, reachesGoal);
+  }
+
+  /**
+   * Nodes by position: an open-addressing table with linear probing. Probes compare packed keys in
+   * one array, so lookups neither box keys nor chase node pointers.
+   */
+  private static final class NodeMap {
+    private static final long EMPTY = Long.MIN_VALUE; // no valid position packs to this
+    private long[] keys = newKeys(1 << 10);
+    private Node[] values = new Node[1 << 10];
+    private int shift = 64 - 10;
+    private int size;
+
+    int size() {
+      return size;
+    }
+
+    Node get(int x, int y, int z) {
+      long key = BlockPos.pack(x, y, z);
+      int mask = keys.length - 1;
+      for (int i = slot(key); keys[i] != EMPTY; i = (i + 1) & mask) {
+        if (keys[i] == key) {
+          return values[i];
+        }
+      }
+      return null;
+    }
+
+    /** Adds a node whose position is not in the map yet. */
+    void add(Node node) {
+      if (++size > keys.length >>> 1) {
+        long[] oldKeys = keys;
+        Node[] oldValues = values;
+        keys = newKeys(oldKeys.length << 1);
+        values = new Node[oldKeys.length << 1];
+        shift--;
+        for (int i = 0; i < oldKeys.length; i++) {
+          if (oldKeys[i] != EMPTY) {
+            insert(oldKeys[i], oldValues[i]);
+          }
+        }
+      }
+      insert(BlockPos.pack(node.x, node.y, node.z), node);
+    }
+
+    private void insert(long key, Node node) {
+      int mask = keys.length - 1;
+      int i = slot(key);
+      while (keys[i] != EMPTY) {
+        i = (i + 1) & mask;
+      }
+      keys[i] = key;
+      values[i] = node;
+    }
+
+    /** Fibonacci hashing: the top bits of the key times the golden ratio. */
+    private int slot(long key) {
+      return (int) ((key * 0x9E3779B97F4A7C15L) >>> shift);
+    }
+
+    private static long[] newKeys(int length) {
+      long[] keys = new long[length];
+      Arrays.fill(keys, EMPTY);
+      return keys;
+    }
   }
 }

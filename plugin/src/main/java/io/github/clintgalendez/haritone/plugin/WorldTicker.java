@@ -10,7 +10,6 @@ import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.clintgalendez.haritone.api.BlockPos;
-import io.github.clintgalendez.haritone.api.NavigationStatus;
 import io.github.clintgalendez.haritone.config.Settings;
 import io.github.clintgalendez.haritone.navigation.NavigationSession;
 import io.github.clintgalendez.haritone.navigation.Navigator;
@@ -27,7 +26,8 @@ import org.joml.Vector3d;
 /**
  * Runs on a fixed-rate scheduler thread and hands each world's sessions to that world's own thread,
  * where world data may be read. A world whose previous tick is still queued is skipped, so a slow
- * world never piles up work. Each tick spends at most the configured planning budget per world.
+ * world never piles up work. Each tick spends at most the configured planning budget per world,
+ * split between the sessions that are planning a route or their next segment.
  */
 final class WorldTicker implements Runnable {
 
@@ -92,8 +92,8 @@ final class WorldTicker implements Runnable {
     HytaleBlockView view =
         new HytaleBlockView(world, settings.hazardBlockKeys(), settings.unbreakableBlockKeys());
     UUID worldId = world.getWorldConfig().getUuid();
-    long planning = sessions.stream().filter(s -> s.status() == NavigationStatus.PLANNING).count();
-    long budget = settings.planningBudgetMs() * 1_000_000L / Math.max(1, planning);
+    long searching = sessions.stream().filter(NavigationSession::isSearching).count();
+    long budget = settings.planningBudgetMs() * 1_000_000L / Math.max(1, searching);
 
     for (NavigationSession session : sessions) {
       PlayerRef player = Universe.get().getPlayer(session.player());

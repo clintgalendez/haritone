@@ -77,6 +77,12 @@ How the facts were checked:
 - `new SectionReader(world.getChunkStore())` provides `getBlock`, `getFluidId`,
   `hasStorageInMemory`, and `canHoldY`. It never loads chunks. Worlds are 320 blocks tall
   (`ChunkUtil.HEIGHT`) in 32×32 columns.
+- Each of those per-block calls finds the section again: a lookup in the reader's
+  `Int3ObjectOpenHashMap` of section refs, `Ref.isValid()`, and `Store.getComponent`.
+  `SectionReader.sectionCursor()` returns a `SectionCursor` whose `moveTo(x, y, z)` resolves
+  the section's block and fluid components only when the section changes (it returns false
+  when the section is not loaded); `block()` and `fluidId()` then read from them directly.
+  `HytaleBlockView` reads terrain through one cursor. Checked with [javap] (`javap -c`).
 - `BlockType.getAssetMap().getAsset(id)` gives `getId()`, `getMaterial()` (`BlockMaterial` is
   only `Empty` or `Solid`), `getDamageToEntities()`, and `getMovementSettings().isClimbable()`.
   `isDoor()` is deprecated in 0.7.2. `Fluid.getAssetMap().getAsset(id)` gives `getId()` and
@@ -136,6 +142,17 @@ How the facts were checked:
   - Goal types (block, XZ, Y level, near, composite).
   - Partial paths when the goal cannot be reached, with segments chained for long trips.
   - Settings such as allow-break and maximum fall height, and per-move costs.
+- Planning-speed ideas taken from `FEATURES.md` (2026-10-15) and implemented independently:
+  - Plan the next segment while the current one is walked, so long trips do not pause at
+    segment ends (`NavigationSession` starts it 64 steps before a partial route's end).
+  - Compact block storage for searches (`BoundedTerrainCache` keeps one byte per block in
+    16×16×16 sections).
+  - Stop a long search with a partial path after a time limit and continue in segments
+    (`PartialRouteAfterMs`, with Haritone's own rule of at least 16 blocks of progress).
+  - Searching off the game thread was not adopted: see
+    [ADR-0002](adr/0002-time-sliced-search-on-world-thread.md).
+- The other speedups are generic techniques, not from Baritone: an open-addressing node map
+  with primitive keys, a cache-friendly terrain cache, and section-cursor world reads.
 - Clean-room rule: no Baritone source, documentation text, setting descriptions, or constant
   tables were copied or translated. Haritone's movement rules, cost model, and defaults were
   derived independently and are documented in [ARCHITECTURE.md](ARCHITECTURE.md). Linking

@@ -29,6 +29,12 @@ import java.util.UUID;
  */
 public final class NavigationSession {
 
+  /**
+   * Steps before the end of a partial route at which planning of the next segment starts: about 15
+   * s of walking. Starting near the end gives terrain beyond it time to load.
+   */
+  private static final int PLAN_AHEAD_STEPS = 64;
+
   /** A consistent copy of the session state, for status reports. */
   public record Snapshot(
       NavigationStatus status,
@@ -77,6 +83,7 @@ public final class NavigationSession {
   private String detail = "";
   private BlockSearch blockSearch;
   private PathSearch search;
+  private PathSearch ahead; // the next segment, planned while the player walks this one
   private long planningStartTick;
   private Path path;
   private int index;
@@ -106,6 +113,16 @@ public final class NavigationSession {
 
   public synchronized NavigationStatus status() {
     return status;
+  }
+
+  /**
+   * Whether the next tick will spend planning time: the session is planning, or planning its next
+   * segment while the player walks the current one. Callers split the planning budget between these
+   * sessions.
+   */
+  public synchronized boolean isSearching() {
+    return status == NavigationStatus.PLANNING
+        || (status == NavigationStatus.NAVIGATING && ahead != null && !ahead.isDone());
   }
 
   public synchronized Path path() {
@@ -179,7 +196,7 @@ public final class NavigationSession {
     if (status == NavigationStatus.PLANNING) {
       plan(here, standing, view, budgetNanos, messages);
     } else if (status == NavigationStatus.NAVIGATING) {
-      follow(px, py, pz, here, evaluator, messages);
+      follow(px, py, pz, here, evaluator, view, budgetNanos, messages);
     }
     return messages;
   }
@@ -212,8 +229,13 @@ public final class NavigationSession {
     if (result == null) {
       return;
     }
-    nodesExpanded += result.expanded();
     search = null;
+    finishPlan(result, messages);
+  }
+
+  /** Follows the route a finished search found, or fails when it found none. */
+  private void finishPlan(PathResult result, List<String> messages) {
+    nodesExpanded += result.expanded();
     if (result.hasPath()) {
       startFollowing(result, messages);
     } else if (result.outcome() == PathResult.Outcome.FAILED) {
@@ -274,7 +296,14 @@ public final class NavigationSession {
   }
 
   private void follow(
-      double px, double py, double pz, BlockPos here, MoveEvaluator evaluator, List<String> msgs) {
+      double px,
+      double py,
+      double pz,
+      BlockPos here,
+      MoveEvaluator evaluator,
+      BlockView view,
+      long budgetNanos,
+      List<String> msgs) {
     if (goal.isSatisfied(here.x(), here.y(), here.z())) {
       complete("arrived at " + goalDescription(), msgs);
       return;
@@ -305,6 +334,9 @@ public final class NavigationSession {
     }
     offRouteTicks = 0;
 
+    if (!path.reachesGoal()) {
+      planAhead(view, budgetNanos);
+    }
     if (index == steps.size() - 1) {
       if (!path.reachesGoal()) {
         nextSegment(msgs);
@@ -340,13 +372,43 @@ public final class NavigationSession {
     }
   }
 
+  /**
+   * Plans the next segment from the end of this partial route while the player walks it, so long
+   * trips do not stop at every segment end to plan.
+   */
+  private void planAhead(BlockView view, long budgetNanos) {
+    if (ahead == null) {
+      if (path.steps().size() - 1 - index <= PLAN_AHEAD_STEPS) {
+        // The first slice runs next tick, once the ticker counts this search in its budget split.
+        ahead = new PathSearch(view, path.end(), goal, request.pathSettings());
+      }
+      return;
+    }
+    if (!ahead.isDone()) {
+      long started = System.nanoTime();
+      ahead.advance(Integer.MAX_VALUE, budgetNanos);
+      planningNanos += System.nanoTime() - started;
+    }
+  }
+
   private void nextSegment(List<String> messages) {
     if (segments >= request.guideSettings().maxSegments()) {
       fail("gave up after " + segments + " route segments", messages);
       return;
     }
+    PathSearch next = ahead;
+    if (next != null && next.isDone() && next.result().hasPath()) {
+      ahead = null;
+      finishPlan(next.result(), messages);
+      return;
+    }
     messages.add("End of this segment; planning the next one.");
     restartPlanning("planning segment " + (segments + 1));
+    if (next != null && !next.isDone()) {
+      search = next; // keep the head start
+      planningStartTick = ticks;
+    }
+    // A finished search without a route is dropped: planning again from here may see more terrain.
   }
 
   private void replan(String why, List<String> messages) {
@@ -360,6 +422,7 @@ public final class NavigationSession {
   }
 
   private void restartPlanning(String reason) {
+    ahead = null;
     path = null;
     index = 0;
     offRouteTicks = 0;

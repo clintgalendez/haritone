@@ -92,8 +92,12 @@ final class RouteDiagnostic extends AbstractWorldCommand {
   private void plan(CommandContext context, World world, int ax, int az, int bx, int bz) {
     HytaleBlockView view =
         new HytaleBlockView(world, settings.hazardBlockKeys(), settings.unbreakableBlockKeys());
+    // Plan the whole route: no early partial result, which would hide how planning went.
     PathSettings pathSettings =
-        settings.pathSettings(PlayerPrefs.defaults(), false).withTimeoutMillis(1_000);
+        settings
+            .pathSettings(PlayerPrefs.defaults(), false)
+            .withTimeoutMillis(1_000)
+            .withPartialAfterMillis(0);
     MoveEvaluator evaluator = new MoveEvaluator(view, pathSettings);
     BlockPos start = evaluator.highestStandable(ax, az);
     BlockPos goal = evaluator.highestStandable(bx, bz);

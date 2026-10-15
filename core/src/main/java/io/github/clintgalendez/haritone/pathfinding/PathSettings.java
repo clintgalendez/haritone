@@ -7,17 +7,21 @@ import java.util.Objects;
  *
  * @param maxNodes most distinct positions the search may track; bounds memory use
  * @param timeoutMillis most compute time the search may use in total, summed over every slice
+ * @param partialAfterMillis compute time after which, when partial paths are allowed, the search
+ *     returns its best partial path as soon as that gets at least 16 blocks closer to the goal; 0
+ *     turns this off
  * @param heuristicWeight 1 gives optimal paths; larger values search faster but may be costlier
  * @param maxFallHeight most blocks the planner may drop in one move
  * @param allowBreak whether to plan through breakable solid blocks
  * @param unknownTerrain how to treat blocks that are not loaded
  * @param allowPartial whether to return a path toward the goal when the goal cannot be reached
- * @param cacheSize terrain lookups to memoize during the search
+ * @param cacheSize blocks of terrain to memoize during the search (about one byte each)
  * @param costs movement costs
  */
 public record PathSettings(
     int maxNodes,
     long timeoutMillis,
+    long partialAfterMillis,
     double heuristicWeight,
     int maxFallHeight,
     boolean allowBreak,
@@ -32,6 +36,9 @@ public record PathSettings(
     }
     if (timeoutMillis < 1) {
       throw new IllegalArgumentException("timeoutMillis must be >= 1");
+    }
+    if (partialAfterMillis < 0) {
+      throw new IllegalArgumentException("partialAfterMillis must be >= 0");
     }
     if (!(heuristicWeight >= 1 && heuristicWeight <= 10)) {
       throw new IllegalArgumentException("heuristicWeight must be between 1 and 10");
@@ -50,12 +57,13 @@ public record PathSettings(
     return new PathSettings(
         100_000,
         2_000,
+        0,
         1.0,
         3,
         false,
         UnknownTerrainPolicy.AVOID,
         true,
-        65_536,
+        1 << 22,
         CostModel.defaults());
   }
 
@@ -63,6 +71,7 @@ public record PathSettings(
     return new PathSettings(
         value,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         maxFallHeight,
         allowBreak,
@@ -75,6 +84,21 @@ public record PathSettings(
   public PathSettings withTimeoutMillis(long value) {
     return new PathSettings(
         maxNodes,
+        value,
+        partialAfterMillis,
+        heuristicWeight,
+        maxFallHeight,
+        allowBreak,
+        unknownTerrain,
+        allowPartial,
+        cacheSize,
+        costs);
+  }
+
+  public PathSettings withPartialAfterMillis(long value) {
+    return new PathSettings(
+        maxNodes,
+        timeoutMillis,
         value,
         heuristicWeight,
         maxFallHeight,
@@ -89,6 +113,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         value,
         maxFallHeight,
         allowBreak,
@@ -102,6 +127,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         value,
         allowBreak,
@@ -115,6 +141,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         maxFallHeight,
         value,
@@ -128,6 +155,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         maxFallHeight,
         allowBreak,
@@ -141,6 +169,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         maxFallHeight,
         allowBreak,
@@ -154,6 +183,7 @@ public record PathSettings(
     return new PathSettings(
         maxNodes,
         timeoutMillis,
+        partialAfterMillis,
         heuristicWeight,
         maxFallHeight,
         allowBreak,

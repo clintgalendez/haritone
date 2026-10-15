@@ -104,7 +104,8 @@ invalid, Haritone logs every problem and runs with **all defaults** until you fi
 |---|---|---|---|
 | `MaxNodes` | 100000 | 1,000–5,000,000 | Positions one search may track; this bounds memory |
 | `SearchTimeoutMs` | 2000 | 50–60,000 | Total compute time one search may use |
-| `PlanningBudgetMs` | 4 | 1–50 | Planning time per world per tick |
+| `PartialRouteAfterMs` | 250 | 0–60,000 | After this much compute, a long search starts you on the best partial route (once it gets at least 16 blocks closer) and plans the rest in segments; 0 waits for the full route |
+| `PlanningBudgetMs` | 8 | 1–50 | Planning time per world per tick, shared by the sessions that are planning |
 | `TickIntervalMs` | 100 | 50–1,000 | How often sessions update |
 | `MaxActiveSessions` | 32 | 1–1,000 | Players navigating at once |
 | `MaxGoalDistance` | 10000 | 16–1,000,000 | Farthest horizontal goal |
@@ -146,13 +147,15 @@ a real server.
 
 - **"you are not standing anywhere a route can start from":** you are mid-air or inside a
   block. Step onto solid ground and try again.
-- **"partial: it ends at …":** the goal is outside loaded terrain. Walk to the end of the
-  segment and the next one is planned automatically.
+- **"partial: it ends at …":** the goal is outside loaded terrain, or the full route was taking
+  longer than `PartialRouteAfterMs`. Walk the segment: the next one is planned while you walk
+  it.
 - **"Navigation is busy":** the server's `MaxActiveSessions` limit is reached.
 - **Commands are unknown to players:** grant `haritone.command` (or the specific nodes) with the
   server's permission tools.
 - **Planning is slow:** raise `PlanningBudgetMs` a little, or `HeuristicWeight` (for example to
-  1.5).
+  1.5). Configs written by Haritone 0.1.0-rc.4 or earlier keep `PlanningBudgetMs` at the old
+  default of 4; set it to 8 to match the current default.
 
 ## Documentation
 

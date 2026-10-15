@@ -15,6 +15,7 @@ import java.util.Locale;
 public record Settings(
     int maxNodes,
     int searchTimeoutMs,
+    int partialRouteAfterMs,
     int planningBudgetMs,
     int tickIntervalMs,
     int maxActiveSessions,
@@ -54,7 +55,8 @@ public record Settings(
     return new Settings(
         100_000,
         2_000,
-        4,
+        250,
+        8,
         100,
         32,
         10_000,
@@ -88,6 +90,7 @@ public record Settings(
     List<String> problems = new ArrayList<>();
     range(problems, "MaxNodes", maxNodes, 1_000, 5_000_000);
     range(problems, "SearchTimeoutMs", searchTimeoutMs, 50, 60_000);
+    range(problems, "PartialRouteAfterMs", partialRouteAfterMs, 0, 60_000);
     range(problems, "PlanningBudgetMs", planningBudgetMs, 1, 50);
     range(problems, "TickIntervalMs", tickIntervalMs, 50, 1_000);
     range(problems, "MaxActiveSessions", maxActiveSessions, 1, 1_000);
@@ -133,13 +136,14 @@ public record Settings(
     return new PathSettings(
         maxNodes,
         searchTimeoutMs,
+        partialRouteAfterMs,
         heuristicWeight,
         Math.min(
             maxFallHeight, prefs.maxFallHeight() == null ? maxFallHeight : prefs.maxFallHeight()),
         allowBreak && mayBreak && prefs.allowBreak(),
         parsePolicy(unknownTerrain),
         true,
-        Math.min(maxNodes * 4, 65_536),
+        PathSettings.defaults().cacheSize(),
         new CostModel(
             ascendCost,
             descendCostPerBlock,

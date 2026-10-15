@@ -36,13 +36,17 @@ Runtime flow:
    groups active sessions by world and queues one task on each world's thread. A world whose
    previous task is still queued is skipped.
 4. On the world thread, each session receives the live `HytaleBlockView`, the player's position,
-   and a share of `PlanningBudgetMs` (default 4 ms per world per tick).
+   and a share of `PlanningBudgetMs` (default 8 ms per world per tick, split between the
+   sessions that are searching).
    - **PLANNING** advances a `PathSearch` within that budget. When the search finishes, the
-     session moves to **NAVIGATING** and sends the first instruction.
+     session moves to **NAVIGATING** and sends the first instruction. A search that has used
+     `PartialRouteAfterMs` of compute returns its best partial route as soon as that gets at
+     least 16 blocks closer, so long trips start sooner.
    - **NAVIGATING** tracks the player's progress along the route, re-checks the upcoming steps
      against the live world, speaks when the next leg changes, and replans when the player
-     leaves the route or the route is blocked. At the end of a partial route it plans the
-     next segment. When the goal is reached it moves to **COMPLETED**.
+     leaves the route or the route is blocked. On a partial route it plans the next segment
+     from the route's end once the player is within 64 steps of it, so the next segment is
+     usually ready on arrival. When the goal is reached it moves to **COMPLETED**.
 5. Disconnecting, changing worlds, `/haritone stop`, a new goal, or plugin shutdown cancels the
    session (**CANCELLED**). Running out of replans, segments, or planning time, or having no
    route, fails it (**FAILED**).
@@ -80,7 +84,7 @@ rules are original to Haritone (see the clean-room note in
 
 | Concern | Mechanism |
 |---|---|
-| Memory per search | `MaxNodes` (default 100k ≈ 12 MB) plus a terrain cache capped at 65,536 entries |
+| Memory per search | `MaxNodes` (default 100k ≈ 12 MB) plus a terrain cache of at most 4 MB (1,024 sections of 16×16×16 blocks, one byte each, allocated as the search reaches them) |
 | CPU per search | `SearchTimeoutMs` (default 2 s of compute in total) |
 | World-thread load | `PlanningBudgetMs` per world per tick, split between planning sessions |
 | Runaway sessions | one session per player, `MaxActiveSessions`, `MaxReplans`, `MaxSegments`, planning-tick limit |

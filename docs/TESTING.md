@@ -51,15 +51,21 @@ maps.
 Budgets in the test are loose on purpose (2 to 5 s) so shared CI runners pass. They catch
 large regressions. Measured on the development machine (Windows 11, JDK 26.0.2), 2026-10-15:
 
-| Map | Moves | Nodes expanded | Time |
-|---|---|---|---|
-| Open field, 256×256, corner to corner | 255 | 256 | 1.6–2.4 ms |
-| 20% random pillars, 256×256 | 338 | 19,215 | 210–350 ms |
-| Serpentine maze, 129×129 | 8,194 | 8,320 | 38–51 ms |
-| 3D sine hills, 200×200 | 281 | 24,547 | 209–267 ms |
+| Map | Moves | Nodes expanded | Time | Before the planning speedups |
+|---|---|---|---|---|
+| Open field, 256×256, corner to corner | 255 | 256 | 0.4 ms | 2.4 ms |
+| 20% random pillars, 256×256 | 338 | 19,215 | 26 ms | 170 ms |
+| Serpentine maze, 129×129 | 8,194 | 8,320 | 9 ms | 36 ms |
+| 3D sine hills, 200×200 | 281 | 24,547 | 48 ms | 183 ms |
 
-In game, planning is spread across ticks (4 ms per world per tick by default), so a search
-needing 200 ms of compute finishes in about 5 s of wall-clock time.
+The second run still includes JIT warm-up. In a long-running JVM (median of runs 11 to 40, fixed
+2 GB heap) the same maps take 1, 19–22, 5 and 35–39 ms, against 2, 445–475, 63–71 and
+185–410 ms before. Moves and nodes expanded are unchanged, so the routes are the same.
+
+In game, planning is spread across ticks (8 ms per world per tick by default, shared by the
+sessions that are searching), so a search needing 100 ms of compute finishes in about 1.3 s
+of wall-clock time. Long searches stop early with a partial route after `PartialRouteAfterMs`
+(250 ms of compute, about 3 s), and the next segment is planned while the player walks.
 
 ## Real-server checks
 
@@ -97,6 +103,20 @@ java -jar <game>/Server/HytaleServer.jar --assets <game>/Assets.zip \
   7 drops), 6,349 nodes in 160 ms.
 - A span over 256 blocks was rejected with a clear message.
 
+**Planning speed: 2026-10-15, server 0.7.2, one universe, `main` (512d99d) against the
+planning speedups.** Each route ran twice in one server. The table shows the second run.
+Both jars expanded the same nodes and found the same routes.
+
+| Route | Nodes expanded | Before | After |
+|---|---|---|---|
+| `route -100 30 20 -90` | 3,042 | 88.7 ms | 26.7 ms |
+| `route 0 0 60 40` | 512 | 18.4 ms | 5.4 ms |
+| `route 10 -60 -60 10` | 690 | 14.9 ms | 4.2 ms |
+| `route -128 -128 128 128` (goal on a tree branch) | 51,497 before, 98,784 after | 1,000 ms timeout | 433 ms to the 100k node limit |
+
+Per node that is about 19 µs before and 4.4 µs after on real terrain. The route diagnostic
+plans whole routes: it turns off `PartialRouteAfterMs`.
+
 The `SEVERE … Took too long to run pre-load process hook` lines in the log come from the
 server's own world generation. They are not from Haritone.
 
@@ -114,6 +134,8 @@ world, and check each item. Until someone does, every player-facing behaviour be
 - [ ] Walking away more than 3 blocks gives "You left the route; replanning." and a new route.
 - [ ] Placing a block on the route gives "The route is blocked at …" within about a second.
 - [ ] Reaching the goal gives "Arrived at …".
+- [ ] On a trip longer than one segment, the next segment starts as soon as you reach the end of
+      the current one ("Next segment: …"), without a planning pause.
 - [ ] While navigating, a line of particles marks the next steps of the route, moves ahead as you
       walk, follows a new route after a replan, and stops after arrival or `/haritone stop`.
       A second player nearby does not see it. Try other `RouteLineParticle` values if the default
