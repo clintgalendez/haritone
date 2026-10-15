@@ -35,8 +35,18 @@ class NavigationSessionTest {
     return session(goal, PathSettings.defaults(), GuideSettings.defaults());
   }
 
+  /**
+   * One tick at {@code pos}. A tick that starts while planning keeps ticking until planning ends,
+   * so results never depend on how much a given machine can plan within one budget slice.
+   */
   private static List<String> tickAt(NavigationSession s, GridBlockView view, BlockPos pos) {
-    return s.tick(pos.x() + 0.5, pos.y(), pos.z() + 0.5, view, BUDGET);
+    boolean planning = s.status() == NavigationStatus.PLANNING;
+    List<String> messages = new ArrayList<>();
+    int ticks = 0;
+    do {
+      messages.addAll(s.tick(pos.x() + 0.5, pos.y(), pos.z() + 0.5, view, BUDGET));
+    } while (planning && s.status() == NavigationStatus.PLANNING && ++ticks < 10_000);
+    return messages;
   }
 
   /** Walks the player along the current path, one step per tick, collecting messages. */
