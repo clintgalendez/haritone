@@ -122,6 +122,18 @@ public final class CommandService {
         : Reply.error("You are not navigating.");
   }
 
+  public Reply pause(Player player) {
+    return navigator.session(player.id()).filter(NavigationSession::pause).isPresent()
+        ? Reply.ok("Navigation paused. Resume with /haritone resume.")
+        : Reply.error("Nothing to pause.");
+  }
+
+  public Reply resume(Player player) {
+    return navigator.session(player.id()).filter(NavigationSession::resume).isPresent()
+        ? Reply.ok("Navigation resumed.")
+        : Reply.error("Nothing to resume.");
+  }
+
   public Reply status(Player player) {
     Optional<NavigationSession> session = navigator.session(player.id());
     if (session.isEmpty()) {
@@ -129,7 +141,7 @@ public final class CommandService {
     }
     NavigationSession.Snapshot s = session.get().snapshot();
     List<String> lines = new ArrayList<>();
-    lines.add("Status: " + s.status() + " (" + s.detail() + ")");
+    lines.add("Status: " + s.status() + (s.paused() ? ", paused" : "") + " (" + s.detail() + ")");
     lines.add("Goal: " + s.goal());
     if (s.moves() > 0) {
       lines.add(
@@ -315,7 +327,7 @@ public final class CommandService {
         "/haritone level <y>  - guide to a height",
         "/haritone find <blockId> [radius]  - guide to the nearest block of a type",
         "/haritone plan <x> <y> <z>  - plan and report a route without guiding",
-        "/haritone stop | status",
+        "/haritone pause | resume | stop | status",
         "/haritone wp add|remove|goto <name>, /haritone wp list",
         "/haritone set <key> <value>, get [key], reset [key]  - keys: "
             + String.join(", ", PlayerPrefs.KEYS));

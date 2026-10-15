@@ -43,6 +43,9 @@ final class HaritoneCommand extends AbstractCommandCollection {
     addSubCommand(new GotoLevel(service));
     addSubCommand(new Find(service));
     addSubCommand(new Plan(service));
+    addSubCommand(new Simple("pause", "Pause navigation", service, CommandService::pause));
+    addSubCommand(
+        new Simple("resume", "Resume paused navigation", service, CommandService::resume));
     addSubCommand(new Simple("stop", "Stop navigating", service, CommandService::stop));
     addSubCommand(
         new Simple("status", "Show navigation progress", service, CommandService::status));

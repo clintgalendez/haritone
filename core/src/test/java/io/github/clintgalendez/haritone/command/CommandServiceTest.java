@@ -133,6 +133,23 @@ class CommandServiceTest {
   }
 
   @Test
+  void pauseAndResume() {
+    Player p = player(UUID.randomUUID());
+    assertEquals("Nothing to pause.", service.pause(p).lines().getFirst());
+    assertFalse(service.resume(p).ok());
+    service.gotoBlock(p, 4, 64, 4);
+    assertTrue(service.pause(p).ok());
+    assertTrue(service.status(p).lines().getFirst().startsWith("Status: PLANNING, paused ("));
+    assertFalse(service.pause(p).ok());
+    assertEquals("Navigation resumed.", service.resume(p).lines().getFirst());
+    assertFalse(service.resume(p).ok());
+    assertTrue(service.status(p).lines().getFirst().startsWith("Status: PLANNING ("));
+    service.pause(p);
+    assertTrue(service.stop(p).ok(), "a paused session can be stopped");
+    assertFalse(service.resume(p).ok());
+  }
+
+  @Test
   void waypointLifecycle() throws Exception {
     UUID id = UUID.randomUUID();
     Player p = player(id);

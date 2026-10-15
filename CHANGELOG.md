@@ -6,6 +6,12 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `/haritone pause` and `/haritone resume`. Pausing keeps the route but stops guidance,
+  planning, and the route line until you resume; `/haritone status` shows it. Resuming repeats
+  the current instruction, and if you moved far from the route while paused, Haritone replans.
+
 ## [0.1.0-rc.5] - 2026-10-15
 
 ### Added
