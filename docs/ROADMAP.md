@@ -28,7 +28,8 @@ checked against the real Hytale server), **Unverified in game** (needs a game cl
 
 - Run the in-game checklist in [TESTING.md](TESTING.md) and fix what it finds (compass,
   permission groups, partial blocks).
-- Show the route visually (particles or markers) if the API supports it.
+- Route line: particles along the upcoming route are implemented. Check them in game and tune the
+  default particle (see TESTING.md).
 - Performance: a primitive-keyed node map and section-level terrain reads in `HytaleBlockView`.
 - A chunk-section snapshot cache so searches can run off the world thread (see ADR-0002).
 

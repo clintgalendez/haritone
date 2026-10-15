@@ -6,6 +6,13 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Route line: while navigating, particles mark the next steps of the route, so players can
+  follow a line on the ground toward the target. Only the navigating player sees it. Set
+  `RouteLineLength`, `RouteLineIntervalMs`, and `RouteLineParticle` in the config;
+  `RouteLineLength: 0` turns it off. Not yet checked in game.
+
 ## [0.1.0-rc.3] - 2026-10-15
 
 ### Fixed

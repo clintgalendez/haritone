@@ -25,6 +25,7 @@ pathfinding.
 | Hazard avoidance (damaging blocks and fluids, lava and fire) with a safety margin | ✅ Implemented |
 | Unknown or unloaded terrain treated as blocked; long trips planned in segments | ✅ Implemented |
 | Turn-by-turn guidance, progress tracking, replanning, live route re-checks | ✅ Implemented, ⚠️ not yet tested in game |
+| Route line: particles along the next steps, shown only to the navigating player | ✅ Implemented, ⚠️ not yet tested in game |
 | Waypoints and per-player preferences, saved on the server | ✅ Implemented, ⚠️ not yet tested in game |
 | Limits on search time, memory, per-tick server load, and active sessions | ✅ Implemented |
 | Break-aware planning (tells players which blocks to break; opt-in and permission-gated) | 🧪 Experimental |
@@ -116,6 +117,9 @@ invalid, Haritone logs every problem and runs with **all defaults** until you fi
 | `HeuristicWeight` | 1.0 | 1–10 | Above 1 is faster but gives less optimal routes |
 | `DeviationTolerance` | 3.0 | 1–64 | Blocks off the route before replanning |
 | `GuidanceIntervalSeconds` | 4 | 1–600 | How often an unchanged instruction repeats |
+| `RouteLineLength` | 16 | 0–64 | Route steps ahead marked with particles; 0 turns the route line off |
+| `RouteLineIntervalMs` | 1000 | 100–5,000 | How often the route line is redrawn; keep it below the particle's lifetime |
+| `RouteLineParticle` | `Block_Top_Glow` | | Particle system id for the route line. The game client hides this default beyond about 10 blocks |
 | `AscendCost`, `DescendCostPerBlock`, `ClimbUpCost`, `ClimbDownCost` | 1.0, 0.5, 1.5, 1.0 | > 0 | Movement costs (one flat block = 1) |
 | `WaterCost` | 2.0 | ≥ 1 | Multiplier for moving through water |
 | `BreakCost`, `HazardMarginCost`, `UnknownCost` | 4.0, 2.0, 1.0 | ≥ 0 | Surcharges |
