@@ -6,6 +6,11 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `NavigationSessionTest` no longer assumes one planning slice finishes a plan, so it
+  passes on slow CI runners.
+
 ## [0.1.0-rc.2] - 2026-10-15
 
 ### Fixed
