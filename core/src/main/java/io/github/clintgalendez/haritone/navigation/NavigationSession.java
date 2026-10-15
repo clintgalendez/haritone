@@ -38,6 +38,7 @@ public final class NavigationSession {
   /** A consistent copy of the session state, for status reports. */
   public record Snapshot(
       NavigationStatus status,
+      boolean paused,
       String goal,
       String detail,
       int moves,
@@ -80,6 +81,7 @@ public final class NavigationSession {
   private final NavigationListener listener;
   private Goal goal;
   private NavigationStatus status = NavigationStatus.IDLE;
+  private boolean paused;
   private String detail = "";
   private BlockSearch blockSearch;
   private PathSearch search;
@@ -121,8 +123,9 @@ public final class NavigationSession {
    * sessions.
    */
   public synchronized boolean isSearching() {
-    return status == NavigationStatus.PLANNING
-        || (status == NavigationStatus.NAVIGATING && ahead != null && !ahead.isDone());
+    return !paused
+        && (status == NavigationStatus.PLANNING
+            || (status == NavigationStatus.NAVIGATING && ahead != null && !ahead.isDone()));
   }
 
   public synchronized Path path() {
@@ -131,10 +134,10 @@ public final class NavigationSession {
 
   /**
    * The route from the player's current step onward, at most {@code count} steps ahead, for drawing
-   * a line to follow. Empty unless the session is navigating.
+   * a line to follow. Empty unless the session is navigating and not paused.
    */
   public synchronized List<BlockPos> routeAhead(int count) {
-    if (status != NavigationStatus.NAVIGATING) {
+    if (paused || status != NavigationStatus.NAVIGATING) {
       return List.of();
     }
     List<PathStep> steps = path.steps();
@@ -147,6 +150,7 @@ public final class NavigationSession {
     double remaining = path == null ? 0 : Guidance.remainingDistance(path, index);
     return new Snapshot(
         status,
+        paused,
         goalDescription(),
         detail,
         moves,
@@ -172,6 +176,32 @@ public final class NavigationSession {
   }
 
   /**
+   * Holds the session where it is: ticks do nothing, so there is no guidance, planning, or route
+   * line, and the session's timers stand still. The route is kept. Returns false if the session had
+   * ended or was already paused.
+   */
+  public synchronized boolean pause() {
+    if (status.isTerminal() || paused) {
+      return false;
+    }
+    paused = true;
+    return true;
+  }
+
+  /**
+   * Continues a paused session. The next tick repeats the current instruction. Returns false if the
+   * session had ended or was not paused.
+   */
+  public synchronized boolean resume() {
+    if (status.isTerminal() || !paused) {
+      return false;
+    }
+    paused = false;
+    lastLegEnd = null;
+    return true;
+  }
+
+  /**
    * Advances the session by one tick.
    *
    * @param px player position x (continuous)
@@ -184,7 +214,7 @@ public final class NavigationSession {
   public synchronized List<String> tick(
       double px, double py, double pz, BlockView view, long budgetNanos) {
     List<String> messages = new ArrayList<>();
-    if (status.isTerminal()) {
+    if (status.isTerminal() || paused) {
       return messages;
     }
     ticks++;

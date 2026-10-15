@@ -61,6 +61,8 @@ pathfinding.
 /haritone status              where am I on the route?
 /haritone wp add home         save this spot
 /haritone wp goto home        guide me back later
+/haritone pause               hold the route, stop the messages
+/haritone resume              pick it back up
 /haritone stop                stop guiding
 ```
 
@@ -84,6 +86,8 @@ The optional arguments use the server's `--name=value` form.
 | `/haritone level <y>` | `haritone.command.level` | Guide to a height. |
 | `/haritone find <blockId> [--radius=N]` | `haritone.command.find` | Find the nearest block of a type and guide you next to it. |
 | `/haritone plan <x> <y> <z>` | `haritone.command.plan` | Plan and report a route without guiding. |
+| `/haritone pause` | `haritone.command.pause` | Pause navigation: keep the route, but stop guidance, planning, and the route line. |
+| `/haritone resume` | `haritone.command.resume` | Resume paused navigation and repeat the current instruction. |
 | `/haritone stop` | `haritone.command.stop` | Stop navigating. |
 | `/haritone status` | `haritone.command.status` | Progress, segments, replans, and search statistics. |
 | `/haritone wp add\|remove\|goto <name>`, `/haritone wp list` | `haritone.command.wp.*` | Waypoints in your current world (names: letters, digits, `_`, `-`; up to 32 characters). |

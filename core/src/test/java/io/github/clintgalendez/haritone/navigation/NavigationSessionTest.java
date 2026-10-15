@@ -109,6 +109,49 @@ class NavigationSessionTest {
   }
 
   @Test
+  void pauseFreezesTheSessionUntilResumed() {
+    GridBlockView view = GridBlockView.flat(30);
+    BlockPos start = new BlockPos(0, 1, 0);
+    NavigationSession s = session(new Goals.AtBlock(new BlockPos(20, 1, 0)));
+    assertTrue(s.isSearching());
+    assertTrue(s.pause());
+    assertFalse(s.isSearching(), "a paused session takes no planning budget");
+    assertTrue(s.tick(0.5, 1, 0.5, view, BUDGET).isEmpty());
+    assertEquals(NavigationStatus.PLANNING, s.status(), "a paused session does not plan");
+    assertTrue(s.resume());
+
+    tickAt(s, view, start);
+    assertEquals(NavigationStatus.NAVIGATING, s.status());
+    assertTrue(s.pause());
+    assertFalse(s.pause(), "already paused");
+    long ticks = s.snapshot().ticks();
+    for (int i = 0; i < 5; i++) {
+      assertTrue(tickAt(s, view, new BlockPos(0, 1, 20)).isEmpty());
+    }
+    assertEquals(ticks, s.snapshot().ticks(), "timers stand still while paused");
+    assertTrue(s.snapshot().paused());
+    assertEquals(List.of(), s.routeAhead(5), "no route line while paused");
+
+    assertTrue(s.resume());
+    assertFalse(s.resume(), "not paused");
+    List<String> messages = tickAt(s, view, start);
+    assertTrue(
+        messages.getFirst().startsWith("Next: walk 20 blocks E"),
+        "resuming repeats the instruction: " + messages);
+    assertEquals(6, s.routeAhead(5).size());
+    assertEquals(NavigationStatus.NAVIGATING, s.status(), "the route was kept");
+    assertEquals(0, s.snapshot().replans());
+
+    s.cancel("test");
+    assertFalse(s.pause());
+    assertFalse(s.resume());
+    assertEquals(
+        List.of("IDLE->PLANNING", "PLANNING->NAVIGATING", "NAVIGATING->CANCELLED"),
+        transitions,
+        "pausing fires no transitions");
+  }
+
+  @Test
   void guidanceIsThrottledButAnnouncesNewLegs() {
     GridBlockView view =
         GridBlockView.parse(

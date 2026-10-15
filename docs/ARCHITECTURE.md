@@ -50,6 +50,9 @@ Runtime flow:
 5. Disconnecting, changing worlds, `/haritone stop`, a new goal, or plugin shutdown cancels the
    session (**CANCELLED**). Running out of replans, segments, or planning time, or having no
    route, fails it (**FAILED**).
+6. `/haritone pause` holds a planning or navigating session without changing its status: ticks
+   do nothing, its timers stand still, and it takes no planning budget. `/haritone resume`
+   continues it.
 
 ## Movement model
 
