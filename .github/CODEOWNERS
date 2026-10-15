@@ -1,0 +1,25 @@
+# The maintainer reviews everything. The explicit entries mark areas that always need the
+# maintainer's approval: architecture, build and dependencies, CI and release, security, and
+# governance.
+*                           @clintgalendez
+
+/core/src/main/             @clintgalendez
+/plugin/                    @clintgalendez
+/docs/adr/                  @clintgalendez
+/docs/ARCHITECTURE.md       @clintgalendez
+
+/build.gradle.kts           @clintgalendez
+/settings.gradle.kts        @clintgalendez
+/gradle.properties          @clintgalendez
+/core/build.gradle.kts      @clintgalendez
+/gradle/                    @clintgalendez
+/gradlew                    @clintgalendez
+/gradlew.bat                @clintgalendez
+
+/.github/                   @clintgalendez
+/SECURITY.md                @clintgalendez
+/LICENSE                    @clintgalendez
+/NOTICE                     @clintgalendez
+/CODE_OF_CONDUCT.md         @clintgalendez
+/CONTRIBUTING.md            @clintgalendez
+/docs/MAINTAINING.md        @clintgalendez

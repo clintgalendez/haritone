@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest a new capability or an improvement.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check docs/ROADMAP.md first. Some features (such as automatic movement) are
+        planned or depend on what the Hytale server API allows.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: Hytale API notes
+      description: If you know which official API this needs (with a docs link), add it here.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to work on this.

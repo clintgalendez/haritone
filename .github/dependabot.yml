@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      build-tooling:
+        patterns: ["*"]
+        # Hytale API bumps also need the manifest ServerVersion range and a real-server check
+        # (see docs/MAINTAINING.md), so they arrive as separate PRs.
+        exclude-patterns: ["com.hypixel.hytale:*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    groups:
+      actions:
+        patterns: ["*"]

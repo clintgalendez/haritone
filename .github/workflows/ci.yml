@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+
+# Every job declares exactly what it needs; nothing is granted by default.
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build and test (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [25, 26]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      # Also validates the Gradle wrapper checksum. Only main writes the cache, so pull
+      # requests (including from forks) can never poison it.
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      # Compile (-Werror, Error Prone), formatting, unit tests, coverage gate, jar integrity
+      # and dependency checksum verification, plus the SBOM.
+      - name: Build
+        run: ./gradlew build :plugin:cyclonedxDirectBom --stacktrace
+
+      - name: Check the jar is reproducible
+        if: matrix.java == 25
+        run: |
+          sha256sum plugin/build/libs/*.jar | tee first.sha256
+          ./gradlew clean :plugin:jar --no-build-cache
+          sha256sum -c first.sha256
+
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports-jdk${{ matrix.java }}
+          path: |
+            */build/reports/
+            */build/test-results/
+          retention-days: 14
+
+      - name: Upload jar and SBOM
+        if: matrix.java == 25
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: haritone-${{ github.sha }}
+          path: |
+            plugin/build/libs/*.jar
+            plugin/build/reports/cyclonedx-direct/bom.json
+          retention-days: 14
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
+
+  # The single required status check for the main branch ruleset.
+  ci-success:
+    name: CI success
+    if: always()
+    needs: [build, dependency-review]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every job to pass
+        env:
+          BUILD: ${{ needs.build.result }}
+          REVIEW: ${{ needs.dependency-review.result }}
+        run: |
+          echo "build=$BUILD dependency-review=$REVIEW"
+          [ "$BUILD" = "success" ] || exit 1
+          [ "$REVIEW" = "success" ] || [ "$REVIEW" = "skipped" ] || exit 1

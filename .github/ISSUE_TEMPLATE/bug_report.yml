@@ -1,0 +1,56 @@
+name: Bug report
+description: Something Haritone does is wrong or broken.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Security problems go to SECURITY.md, not here.
+        Remember: Haritone plans and guides; it does not move players (that is by design).
+  - type: input
+    id: haritone-version
+    attributes:
+      label: Haritone version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: hytale-version
+    attributes:
+      label: Hytale server version
+      description: Shown in the server log as "Booting up HytaleServer - Version".
+      placeholder: 0.7.2
+    validations:
+      required: true
+  - type: dropdown
+    id: setting
+    attributes:
+      label: Where does it happen?
+      options:
+        - Dedicated server
+        - Single player
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Commands you ran, coordinates, and what the terrain looks like.
+      placeholder: |
+        1. /haritone goto 120 64 -30
+        2. Walk to ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines and config.json
+      description: Lines starting with [Haritone and your mods/Haritone_Haritone/config.json if you changed it.
+      render: text

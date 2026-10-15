@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/clintgalendez/haritone/security/advisories/new
+    about: Please report security issues privately, not as public issues.
+  - name: Support and troubleshooting
+    url: https://github.com/clintgalendez/haritone/blob/main/SUPPORT.md
+    about: Where to ask for help.
