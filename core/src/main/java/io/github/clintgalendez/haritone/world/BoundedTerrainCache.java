@@ -32,7 +32,7 @@ public final class BoundedTerrainCache implements BlockView {
 
           @Override
           protected boolean removeEldestEntry(Map.Entry<Long, Terrain> eldest) {
-            return size() > BoundedTerrainCache.this.maxEntries;
+            return this.size() > BoundedTerrainCache.this.maxEntries;
           }
         };
   }

@@ -103,16 +103,7 @@ final class RouteDiagnostic extends AbstractWorldCommand {
           "No standable surface at " + (start == null ? ax + " " + az : bx + " " + bz) + ".");
       return;
     }
-    say(
-        context,
-        "Surface: start "
-            + start
-            + " on "
-            + view.blockKey(start.x(), start.y() - 1, start.z())
-            + ", goal "
-            + goal
-            + " on "
-            + view.blockKey(goal.x(), goal.y() - 1, goal.z()));
+    say(context, "Surface: start " + describe(view, start) + ", goal " + describe(view, goal));
     PathResult result = new PathSearch(view, start, new Goals.AtBlock(goal), pathSettings).run();
     say(
         context,
@@ -144,6 +135,18 @@ final class RouteDiagnostic extends AbstractWorldCommand {
     if (next != null) {
       say(context, next);
     }
+  }
+
+  /**
+   * Where an entity stands: feet terrain and the block below, e.g. "0 114 0 (WATER over Empty)".
+   */
+  private static String describe(HytaleBlockView view, BlockPos pos) {
+    return pos
+        + " ("
+        + view.terrain(pos.x(), pos.y(), pos.z())
+        + " over "
+        + view.blockKey(pos.x(), pos.y() - 1, pos.z())
+        + ")";
   }
 
   private static void say(CommandContext context, String text) {

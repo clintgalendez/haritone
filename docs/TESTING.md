@@ -83,15 +83,18 @@ java -jar <game>/Server/HytaleServer.jar --assets <game>/Assets.zip \
 **Last run: 2026-10-15, server 0.7.2 (revision d769dc3d), fresh universe.**
 
 - The plugin was discovered (`Haritone:Haritone from path haritone-0.1.0-SNAPSHOT.jar`) and
-  enabled (`Enabled plugin Haritone:Haritone`). `mods/Haritone_Haritone/config.json` was written
-  with every key.
-- `help haritone` printed the full command tree (goto with its `<x> <z>` variant, level, find,
-  plan, stop, status, help, wp add/remove/goto/list, set, get, reset, route).
-- `route 0 0 60 40` loaded 16 chunks. Start was 0 114 0 (in water), goal 60 117 40 on
-  `Soil_Grass`. Result: **FOUND**, 63 moves (23 straight, 37 diagonal, 3 step-ups), 699 nodes
-  expanded.
-- `route -100 30 20 -90` loaded 36 chunks. Start was on `Soil_Grass`, goal on `Soil_Pathway`.
-  Result: **FOUND**, 141 moves (99 diagonal, 8 step-ups, 13 drops), 6,815 nodes in 242 ms.
+  enabled (`Enabled plugin Haritone:Haritone`). `mods/Haritone_Haritone/config.json` was
+  written with every key.
+- `help haritone` printed the full command tree: `goto` (and its `<x> <z>` variant), `level`,
+  `find <block> [--radius=?]`, `plan`, `stop`, `status`, `help`, `wp add/remove/goto/list`,
+  `set`, `get [--key=?]`, `reset [--key=?]`, and `route <x1> <z1> <x2> <z2> [--world=?]`.
+- `route 0 0 60 40` loaded 16 chunks. Start was `0 114 0 (WATER over Empty)` and goal
+  `60 117 40 (OPEN over Soil_Grass)`, so fluids and real block ids are classified. Result:
+  **FOUND**, 63 moves (23 straight, 37 diagonal, 3 step-ups), 699 nodes expanded.
+- `route -100 30 20 -90` started on `Soil_Grass` and ended on `Soil_Pathway`. Result:
+  **FOUND**, 141 moves (99 diagonal, 8 step-ups, 13 drops), 6,815 nodes in 242 ms.
+- `route 10 -60 -60 10` started on `Soil_Grass_Full`. Result: **FOUND**, 97 moves (9 step-ups,
+  7 drops), 6,349 nodes in 160 ms.
 - A span over 256 blocks was rejected with a clear message.
 
 The `SEVERE … Took too long to run pre-load process hook` lines in the log come from the

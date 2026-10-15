@@ -201,11 +201,12 @@ public final class NavigationSession {
     }
     nodesExpanded += result.expanded();
     search = null;
-    switch (result.outcome()) {
-      case FOUND, PARTIAL -> startFollowing(result, messages);
-      case FAILED -> fail(failureText(result), messages);
-      case CANCELLED -> {}
+    if (result.hasPath()) {
+      startFollowing(result, messages);
+    } else if (result.outcome() == PathResult.Outcome.FAILED) {
+      fail(failureText(result), messages);
     }
+    // CANCELLED needs nothing: cancel() already set the final status.
   }
 
   /** Runs the block search; returns true once a goal is set. */
