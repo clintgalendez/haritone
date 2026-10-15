@@ -19,8 +19,9 @@ right column.
 
 | Setting | Value | Check |
 |---|---|---|
-| Ruleset `main` (branch `main`) | PRs required; 1 approval; code owner review; stale reviews dismissed; conversations resolved; required check `CI success`; linear history; no force pushes; no deletion; bypass: repository admin, **pull requests only** | `gh api repos/clintgalendez/haritone/rulesets` |
-| Ruleset `release tags` (`refs/tags/v*`) | only admins may create; no update or deletion | same |
+| Ruleset `main` (default branch) | PRs required; 1 approval; code owner review; stale reviews dismissed; last push approved; conversations resolved; squash or rebase only; required check `CI success` (GitHub Actions); CodeQL must report no high or higher security alerts and no error alerts; linear history; no force pushes; no deletion; bypass: repository admin, **pull requests only** | `gh api repos/clintgalendez/haritone/rulesets` |
+| Ruleset `release tag creation` (`refs/tags/v*`) | only repository admins can create release tags | same |
+| Ruleset `release tags are immutable` (`refs/tags/v*`) | nobody can move or delete a release tag (no bypass) | same |
 | Environment `release` | required reviewer @clintgalendez; deployment tags `v*` only | `gh api repos/clintgalendez/haritone/environments/release` |
 | Actions → default `GITHUB_TOKEN` | read-only; Actions may not approve PRs | `gh api repos/clintgalendez/haritone/actions/permissions/workflow` |
 | Actions → fork PR workflows | require approval for first-time contributors | repository settings UI |
