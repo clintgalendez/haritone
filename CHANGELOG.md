@@ -6,6 +6,8 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-rc.4] - 2026-10-15
+
 ### Added
 
 - Route line: while navigating, particles mark the next steps of the route, so players can
@@ -67,7 +69,8 @@ moves them. Player-facing behaviour has not yet been checked in game (see docs/T
   - workflows for CI, CodeQL, OpenSSF Scorecard, dependency submission, and gated releases.
 - Project documentation, governance files, and issue and PR templates.
 
-[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.3...HEAD
+[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.4...HEAD
+[0.1.0-rc.4]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.4
 [0.1.0-rc.3]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.1
