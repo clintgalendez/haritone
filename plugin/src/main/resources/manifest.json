@@ -1,0 +1,18 @@
+{
+  "Group": "Haritone",
+  "Name": "Haritone",
+  "Version": "${version}",
+  "Description": "Route planning and turn-by-turn guidance for players. Plans and guides only; it never moves the player.",
+  "Authors": [
+    {
+      "Name": "Clint Galendez"
+    }
+  ],
+  "Website": "https://github.com/clintgalendez/haritone",
+  "Main": "io.github.clintgalendez.haritone.plugin.HaritonePlugin",
+  "ServerVersion": ">=0.7.2 <0.8.0",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false
+}
