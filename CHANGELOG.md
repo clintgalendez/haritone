@@ -6,12 +6,16 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-rc.3] - 2026-10-15
+
 ### Fixed
 
 - `NavigationSessionTest` no longer assumes one planning slice finishes a plan, so it
   passes on slow CI runners.
 
-## [0.1.0-rc.2] - 2026-10-15
+## [0.1.0-rc.2] - 2026-10-15 [NOT RELEASED]
+
+The release build failed on the flaky test fixed in rc.3.
 
 ### Fixed
 
@@ -56,6 +60,7 @@ moves them. Player-facing behaviour has not yet been checked in game (see docs/T
   - workflows for CI, CodeQL, OpenSSF Scorecard, dependency submission, and gated releases.
 - Project documentation, governance files, and issue and PR templates.
 
-[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.2...HEAD
+[Unreleased]: https://github.com/clintgalendez/haritone/compare/v0.1.0-rc.3...HEAD
+[0.1.0-rc.3]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/clintgalendez/haritone/releases/tag/v0.1.0-rc.1
