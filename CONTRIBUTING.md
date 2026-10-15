@@ -32,7 +32,9 @@ Good first issues are labelled `good first issue`.
 3. Add or update tests. Every bug fix needs a regression test. `core` coverage must stay at or
    above 90% of lines and 75% of branches.
 4. Run `./gradlew spotlessApply build` (formatting, compile with `-Werror` and Error Prone,
-   tests, coverage gate, jar checks).
+   tests, coverage gate, jar checks). If Spotless reports a formatter exception
+   (`InvocationTargetException` or `NoClassDefFoundError`), that is a stale Gradle daemon, not
+   your code. Run `./gradlew --stop` and then `./gradlew spotlessJava --rerun`.
 5. Update the docs that your change affects: README feature matrix, CHANGELOG ("Unreleased"),
    ROADMAP, and TESTING.
 6. Open a PR and fill in the template.
