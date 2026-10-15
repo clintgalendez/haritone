@@ -1,0 +1,40 @@
+# Changelog
+
+All notable changes are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Navigation engine (`core`):
+  - resumable, time-sliced A* with walking, diagonal (no corner cutting), step-up, drop,
+    ladder, and swimming moves;
+  - configurable costs and heuristic weight;
+  - hazard avoidance with a safety margin;
+  - limits on node count, compute time, and cache size;
+  - an unknown-terrain policy and partial paths.
+- Goals: block, near, column, level, next to a block, any-of.
+- Guide mode:
+  - turn-by-turn instructions with straight and diagonal runs merged into legs;
+  - progress tracking and replanning when the player leaves the route;
+  - live re-checks of the route against the world;
+  - segment chaining for long trips;
+  - plan-only mode and status reporting.
+- Block targeting (`find`), waypoints, and per-player preferences, saved per player.
+- Break-aware planning (experimental). It needs a server switch, a permission, and a player
+  preference, and it never breaks blocks itself.
+- Hytale 0.7.2 integration:
+  - plugin lifecycle and `config.json` through the server's codec;
+  - a block and fluid classifier;
+  - a per-world ticker with a planning budget;
+  - `/haritone` commands;
+  - cancellation on disconnect, world change, and shutdown;
+  - the admin `route` diagnostic.
+- Build and CI:
+  - Gradle 9.8.1 wrapper, compile with `-Werror` and Error Prone, Spotless, a JaCoCo gate;
+  - dependency checksum verification, a CycloneDX SBOM, a reproducible jar, and jar integrity
+    checks;
+  - workflows for CI, CodeQL, OpenSSF Scorecard, dependency submission, and gated releases.
+- Project documentation, governance files, and issue and PR templates.
