@@ -6,7 +6,7 @@ buildscript {
     dependencies {
         // The CycloneDX plugin pulls Jackson 2.22.2, which has advisories fixed in 2.22.3.
         // Build-time only; nothing from the build classpath ships in the mod jar.
-        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.23.0"))
     }
 }
 
